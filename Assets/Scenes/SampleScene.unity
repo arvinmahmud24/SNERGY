@@ -1044,7 +1044,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7f02f83a57bcb24996b7befd7e88438, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2
+  moveSpeed: 4
   jumpForce: 7
   otherPlayer: {fileID: 0}
   maxDistance: 10
