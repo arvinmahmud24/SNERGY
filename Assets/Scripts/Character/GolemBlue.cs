@@ -96,27 +96,39 @@ public class GolemBlue : MonoBehaviour
             rb.velocity = new Vector2(0f, rb.velocity.y);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    // --- PERBAIKAN SISTEM GROUNDED & FALL DAMAGE ---
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        if (!isGrounded)
+        // Mengecek semua titik sentuh tumbukan
+        foreach (ContactPoint2D contact in collision.contacts)
         {
-            float fallDistance = highestYPosition - transform.position.y;
-
-            if (fallDistance > fallDamageThreshold)
+            // Jika arah sentuhan mengarah ke atas (Y > 0.5), berarti itu adalah lantai
+            if (contact.normal.y > 0.5f)
             {
-                TakeFallDamage();
+                // Cek Fall Damage HANYA saat karakter baru mendarat
+                if (!isGrounded)
+                {
+                    float fallDistance = highestYPosition - transform.position.y;
+                    if (fallDistance > fallDamageThreshold)
+                    {
+                        TakeFallDamage();
+                    }
+                }
+
+                isGrounded = true;
+                highestYPosition = transform.position.y; // Update posisi tertinggi saat di tanah
+                return; // Selesai mengecek, karakter terbukti ada di tanah
             }
         }
-
-        isGrounded = true;
-        highestYPosition = transform.position.y;
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
+        // Saat karakter melayang (lompat atau jatuh dari pinggiran)
         isGrounded = false;
-        highestYPosition = transform.position.y;
+        highestYPosition = transform.position.y; // Reset titik tertinggi sebagai awal mula jatuh
     }
+    // ------------------------------------------------
 
     private void TakeFallDamage()
     {

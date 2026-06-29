@@ -180,10 +180,10 @@ TextureImporter:
         serializedVersion: 2
         x: 26
         y: 0
-        width: 38
-        height: 38
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+        width: 37
+        height: 64
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -202,7 +202,7 @@ TextureImporter:
         x: 116
         y: 0
         width: 39
-        height: 40
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -223,7 +223,7 @@ TextureImporter:
         x: 205
         y: 0
         width: 41
-        height: 43
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -244,7 +244,7 @@ TextureImporter:
         x: 293
         y: 0
         width: 44
-        height: 44
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -265,7 +265,7 @@ TextureImporter:
         x: 378
         y: 0
         width: 56
-        height: 43
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -286,7 +286,7 @@ TextureImporter:
         x: 467
         y: 0
         width: 57
-        height: 39
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -307,7 +307,7 @@ TextureImporter:
         x: 555
         y: 0
         width: 60
-        height: 33
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -328,7 +328,7 @@ TextureImporter:
         x: 644
         y: 0
         width: 61
-        height: 24
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -349,7 +349,7 @@ TextureImporter:
         x: 734
         y: 0
         width: 62
-        height: 16
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -367,10 +367,10 @@ TextureImporter:
       name: Golem_1_die_26
       rect:
         serializedVersion: 2
-        x: 824
+        x: 823
         y: 0
-        width: 62
-        height: 13
+        width: 63
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -391,7 +391,7 @@ TextureImporter:
         x: 915
         y: 0
         width: 61
-        height: 8
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -409,10 +409,10 @@ TextureImporter:
       name: Golem_1_die_34
       rect:
         serializedVersion: 2
-        x: 1026
+        x: 1024
         y: 0
-        width: 30
-        height: 4
+        width: 32
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
