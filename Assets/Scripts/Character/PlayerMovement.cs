@@ -7,20 +7,31 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public float jumpForce = 7f;
 
-    [Header("Batas Jarak Antar Player")]
-    public Transform otherPlayer;
-    public float maxDistance = 30f;
-
-    [Header("Sistem Fall Damage")]
-    public float fallDamageThreshold = 3f;
+    [Header("Combat & Health")]
     public int health = 30;
+    // Kekuatan pentalan ke belakang
+    [SerializeField] private float knockbackForceX = 8f;
+    // Kekuatan pentalan sedikit ke atas agar pentalan terasa
+    [SerializeField] private float knockbackForceY = 3f;
+    // Durasi knockback di mana kontrol player dimatikan
+    [SerializeField] private float knockbackDuration = 0.3f;
 
     [Header("Death")]
     public float deadAnimationDuration = 1.2f;
 
+    [Header("Batas Jarak Antar Player (Multiplayer)")]
+    public Transform otherPlayer;
+    public float maxDistance = 30f;
+    [HideInInspector] public bool ignoreDistanceCheck = false;
+
+    [Header("Sistem Fall Damage")]
+    public float fallDamageThreshold = 3f;
+
     private bool isGrounded;
     private bool isDead;
+    private bool isKnockback; // Status apakah sedang terpental
     private float highestYPosition;
+    private string damageNotice = "";
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -29,28 +40,30 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-
         highestYPosition = transform.position.y;
     }
 
     void Update()
     {
-        // Jika mati, tidak bisa bergerak lagi
-        if (isDead)
-            return;
+        // Jika mati atau sedang knockback, jangan baca input pergerakan
+        if (isDead || isKnockback) return;
 
-        float move = Input.GetAxis("Horizontal");
+        // Baca Input Keyboard/Joystick
+        float move = 0f;
+        if (Input.GetKey(KeyCode.RightArrow)) move = 1f;
+        else if (Input.GetKey(KeyCode.LeftArrow)) move = -1f;
+        else move = Input.GetAxis("Horizontal"); // Gunakan Axis untuk Joystick
 
         MovePlayer(move);
 
-        // Lompat (Pastikan kamu menggunakan Gamepad/Joystick. Jika ingin pakai keyboard, tambahkan Input.GetKeyDown(KeyCode.W))
-        if (Input.GetKeyDown(KeyCode.JoystickButton1) && isGrounded)
+        // Lompat: Mendukung Joystick Button 1 ATAU Panah Atas
+        if ((Input.GetKeyDown(KeyCode.JoystickButton1) || Input.GetKeyDown(KeyCode.UpArrow)) && isGrounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             isGrounded = false;
         }
 
-        // Menyimpan titik tertinggi saat di udara
+        // Simpan titik tertinggi untuk fall damage
         if (!isGrounded)
         {
             if (transform.position.y > highestYPosition)
@@ -59,7 +72,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Animasi Jalan
+        // Set Animasi Speed
         if (anim != null)
         {
             anim.SetFloat("Speed", Mathf.Abs(move));
@@ -67,128 +80,155 @@ public class PlayerMovement : MonoBehaviour
 
         // Flip Sprite
         if (move > 0.1f)
-        {
             transform.localScale = new Vector3(1, 1, 1);
-        }
         else if (move < -0.1f)
-        {
             transform.localScale = new Vector3(-1, 1, 1);
-        }
     }
 
     void MovePlayer(float move)
     {
         bool canMove = true;
 
-        if (otherPlayer != null)
+        if (otherPlayer != null && !ignoreDistanceCheck)
         {
             float distance = Vector2.Distance(transform.position, otherPlayer.position);
-
             if (distance >= maxDistance)
             {
-                bool movingAway =
-                    (move > 0 && transform.position.x > otherPlayer.position.x) ||
-                    (move < 0 && transform.position.x < otherPlayer.position.x);
-
-                if (movingAway)
-                    canMove = false;
+                bool movingAway = (move > 0 && transform.position.x > otherPlayer.position.x) ||
+                                  (move < 0 && transform.position.x < otherPlayer.position.x);
+                if (movingAway) canMove = false;
             }
         }
 
         if (canMove)
-        {
             rb.velocity = new Vector2(move * moveSpeed, rb.velocity.y);
-        }
         else
-        {
             rb.velocity = new Vector2(0, rb.velocity.y);
-        }
     }
 
-    // --- PERBAIKAN SISTEM GROUNDED & FALL DAMAGE ---
-    private void OnCollisionStay2D(Collision2D collision)
+    // Fungsi utama dipanggil oleh musuh untuk damage & knockback
+    public void TakeDamageFromEnemy(int damage, Vector2 enemyPosition)
     {
-        if (isDead)
-            return;
+        if (isDead || isKnockback) return;
 
-        // Mengecek semua titik sentuh tumbukan
-        foreach (ContactPoint2D contact in collision.contacts)
-        {
-            // Jika arah sentuhan mengarah ke atas (Y > 0.5), berarti itu adalah lantai
-            if (contact.normal.y > 0.5f)
-            {
-                // Cek Fall Damage HANYA saat karakter baru mendarat
-                if (!isGrounded)
-                {
-                    float fallDistance = highestYPosition - transform.position.y;
+        health -= damage;
+        damageNotice = $"-{damage} HP (Knockback!)";
+        CancelInvoke("ClearNotice");
+        Invoke("ClearNotice", 1.5f);
 
-                    Debug.Log("Tinggi jatuh : " + fallDistance);
-
-                    if (fallDistance >= fallDamageThreshold)
-                    {
-                        TakeFallDamage();
-                    }
-                }
-
-                isGrounded = true;
-                highestYPosition = transform.position.y; // Update posisi tertinggi saat di tanah
-                return; // Selesai mengecek, karakter terbukti ada di tanah
-            }
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (isDead)
-            return;
-
-        // Saat karakter melayang (lompat atau jatuh dari pinggiran)
-        isGrounded = false;
-        highestYPosition = transform.position.y; // Reset titik tertinggi sebagai awal mula jatuh
-    }
-    // ------------------------------------------------
-
-    void TakeFallDamage()
-    {
-        health -= 10;
-
-        Debug.Log("Health : " + health);
+        // Hitung arah knockback (selalu menjauh dari posisi musuh)
+        float knockbackDirX = transform.position.x - enemyPosition.x;
+        // Gunakan Mathf.Sign agar nilainya hanya -1 (kiri) atau 1 (kanan)
+        knockbackDirX = Mathf.Sign(knockbackDirX);
 
         if (health <= 0)
         {
             health = 0;
-
             StartCoroutine(DeadRoutine());
         }
         else
         {
+            StartCoroutine(KnockbackRoutine(knockbackDirX));
+        }
+    }
+
+    private IEnumerator KnockbackRoutine(float directionX)
+    {
+        isKnockback = true;
+
+        // Reset velocity lama sebelum AddForce
+        rb.velocity = Vector2.zero;
+
+        // Berikan gaya pentalan instan ke belakang dan sedikit ke atas
+        Vector2 force = new Vector2(directionX * knockbackForceX, knockbackForceY);
+        rb.AddForce(force, ForceMode2D.Impulse);
+
+        // Picu animasi terluka (Hit)
+        if (anim != null)
+        {
             anim.ResetTrigger("Dead");
             anim.SetTrigger("Hit");
+        }
+
+        // Tunggu durasi pentalan selesai
+        yield return new WaitForSeconds(knockbackDuration);
+
+        // Reset velocity agar player tidak terus meluncur
+        rb.velocity = new Vector2(0f, rb.velocity.y);
+        isKnockback = false;
+    }
+
+    // Fungsi Utility dsb... (Sama seperti sebelumnya)
+    public void ResetStatusAfterPortal()
+    {
+        isGrounded = true;
+        highestYPosition = transform.position.y;
+        if (anim != null) anim.SetFloat("Speed", 0f);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (isDead) return;
+        if (collision.gameObject.CompareTag("Player")) { isGrounded = true; return; }
+
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal.y > 0.5f) // Permukaan datar di kaki
+            {
+                if (!isGrounded)
+                {
+                    float fallDistance = highestYPosition - transform.position.y;
+                    if (fallDistance >= fallDamageThreshold) { TakeFallDamage(); }
+                }
+                isGrounded = true;
+                highestYPosition = transform.position.y;
+                break;
+            }
+        }
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (isDead) return;
+        foreach (ContactPoint2D contact in collision.contacts) { if (contact.normal.y > 0.5f) { isGrounded = true; break; } }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (isDead) return;
+        isGrounded = false;
+        highestYPosition = transform.position.y;
+    }
+
+    private void TakeFallDamage()
+    {
+        if (isDead) return;
+        health -= 10;
+        damageNotice = "-10 HP (Fall)";
+        CancelInvoke("ClearNotice");
+        Invoke("ClearNotice", 1.5f);
+        if (health <= 0) { health = 0; StartCoroutine(DeadRoutine()); }
+        else if (anim != null) { anim.ResetTrigger("Dead"); anim.SetTrigger("Hit"); }
+    }
+
+    void ClearNotice() { damageNotice = ""; }
+
+    void OnGUI()
+    {
+        GUI.Box(new Rect(10, 10, 150, 30), "Skeleton HP: " + health);
+        if (!string.IsNullOrEmpty(damageNotice))
+        {
+            GUI.color = Color.red;
+            GUI.Label(new Rect(10, 45, 150, 30), damageNotice);
         }
     }
 
     IEnumerator DeadRoutine()
     {
         isDead = true;
-
-        Debug.Log("KARAKTER MATI!");
-
-        // Hentikan gerakan
-        rb.velocity = Vector2.zero;
-        rb.gravityScale = 0;
-
-        // Reset trigger lain
-        anim.ResetTrigger("Hit");
-
-        // Jalankan animasi Dead
-        anim.SetTrigger("Dead");
-
-        // Tunggu animasi selesai
+        rb.velocity = new Vector2(0, rb.velocity.y);
+        if (anim != null) { anim.ResetTrigger("Hit"); anim.SetTrigger("Dead"); }
         yield return new WaitForSeconds(deadAnimationDuration);
-
-        Debug.Log("GAME OVER");
-
-        // Pause game
         Time.timeScale = 0f;
     }
 }

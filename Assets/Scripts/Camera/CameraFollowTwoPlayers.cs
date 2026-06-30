@@ -14,7 +14,7 @@ public class CameraFollowTwoPlayers : MonoBehaviour
     public float zoomLimiter = 10f;
 
     [Header("Batas Kamera")]
-    public float maxPlayerDistance = 12f;
+    public float maxPlayerDistance = 15f;
 
     private Camera cam;
 
