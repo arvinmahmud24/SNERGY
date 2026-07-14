@@ -1,0 +1,14 @@
+{
+    "name": "Unity2300018140.Comunityaiassistant.Editor.Tests",
+    "references": [
+        "Unity2300018140.Comunityaiassistant.Editor",
+        "Unity2300018140.Comunityaiassistant"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

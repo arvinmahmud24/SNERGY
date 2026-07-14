@@ -61,7 +61,7 @@ public abstract class CharacterBase : MonoBehaviour
     protected void Move(float input)
     {
         // Horizontal movement
-        rb.velocity = new Vector2(input * moveSpeed, rb.velocity.y);
+        rb.linearVelocity = new Vector2(input * moveSpeed, rb.linearVelocity.y);
 
         // Update sprite direction
         if (input > 0.1f)
@@ -81,7 +81,7 @@ public abstract class CharacterBase : MonoBehaviour
         if (!isGrounded) return;
         if (Time.time - lastJumpTime < Constants.JUMP_COOLDOWN) return;
 
-        rb.velocity = new Vector2(rb.velocity.x, 0);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         lastJumpTime = Time.time;
 
@@ -101,7 +101,7 @@ public abstract class CharacterBase : MonoBehaviour
     private void UpdateGravity()
     {
         // Apply different drag based on grounded state
-        rb.drag = isGrounded ? groundDrag : airDrag;
+        rb.linearDamping = isGrounded ? groundDrag : airDrag;
     }
 
     // === HEALTH & DEATH ===

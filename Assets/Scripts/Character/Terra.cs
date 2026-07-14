@@ -74,7 +74,7 @@ public class Terra : CharacterBase
                 Rigidbody2D blockRb = col.GetComponent<Rigidbody2D>();
                 if (blockRb != null)
                 {
-                    blockRb.velocity = Vector2.zero;
+                    blockRb.linearVelocity = Vector2.zero;
                     blockRb.AddForce(Vector2.right * direction * pushForce, ForceMode2D.Impulse);
 
                     if (animator != null)
@@ -109,18 +109,18 @@ public class Terra : CharacterBase
         isClimbing = true;
         // Jangan pakai RigidbodyConstraints2D
         // Just set velocity
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
     }
 
     private void Climb(float input)
     {
-        rb.velocity = new Vector2(0, input * climbSpeed);
+        rb.linearVelocity = new Vector2(0, input * climbSpeed);
     }
 
     private void StopClimbing()
     {
         isClimbing = false;
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
     }
 
     // === TERRA ABILITY: Protect Pyro from Wind ===

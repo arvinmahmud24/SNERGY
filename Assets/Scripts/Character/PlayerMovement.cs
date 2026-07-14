@@ -27,11 +27,30 @@ public class PlayerMovement : MonoBehaviour
     [Header("Sistem Fall Damage")]
     public float fallDamageThreshold = 3f;
 
+    [Header("AI Companion Settings")]
+    public bool isAIControlled = false;
+    private float aiMoveInput = 0f;
+    private bool aiJumpTrigger = false;
+
+    [Header("Stacking Settings")]
+    [SerializeField] private float carryingSpeedMultiplier = 0.6f;
+    [HideInInspector] public Rigidbody2D carrierRigidbody = null;
+    [HideInInspector] public Rigidbody2D passengerRigidbody = null;
+
     private bool isGrounded;
     private bool isDead;
     private bool isKnockback; // Status apakah sedang terpental
     private float highestYPosition;
     private string damageNotice = "";
+
+    public void SetAIInputs(float moveInput, bool jumpTrigger)
+    {
+        aiMoveInput = moveInput;
+        if (jumpTrigger)
+        {
+            aiJumpTrigger = true;
+        }
+    }
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -48,18 +67,31 @@ public class PlayerMovement : MonoBehaviour
         // Jika mati atau sedang knockback, jangan baca input pergerakan
         if (isDead || isKnockback) return;
 
-        // Baca Input Keyboard/Joystick
         float move = 0f;
-        if (Input.GetKey(KeyCode.RightArrow)) move = 1f;
-        else if (Input.GetKey(KeyCode.LeftArrow)) move = -1f;
-        else move = Input.GetAxis("Horizontal"); // Gunakan Axis untuk Joystick
+        bool jumpPressed = false;
+
+        if (isAIControlled)
+        {
+            move = aiMoveInput;
+            jumpPressed = aiJumpTrigger;
+            aiJumpTrigger = false; // Consume jump trigger
+        }
+        else
+        {
+            // Baca Input Keyboard/Joystick
+            if (Input.GetKey(KeyCode.RightArrow)) move = 1f;
+            else if (Input.GetKey(KeyCode.LeftArrow)) move = -1f;
+            else move = Input.GetAxis("Horizontal"); // Gunakan Axis untuk Joystick
+
+            jumpPressed = Input.GetKeyDown(KeyCode.JoystickButton1) || Input.GetKeyDown(KeyCode.UpArrow);
+        }
 
         MovePlayer(move);
 
         // Lompat: Mendukung Joystick Button 1 ATAU Panah Atas
-        if ((Input.GetKeyDown(KeyCode.JoystickButton1) || Input.GetKeyDown(KeyCode.UpArrow)) && isGrounded)
+        if (jumpPressed && isGrounded)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             isGrounded = false;
         }
 
@@ -100,10 +132,20 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
+        // Hitung kecepatan dasar, kurangi jika membawa penumpang
+        float currentSpeed = passengerRigidbody != null ? moveSpeed * carryingSpeedMultiplier : moveSpeed;
+        float targetHorizontalVelocity = move * currentSpeed;
+
+        // Jika kita sedang digendong, tambahkan kecepatan carrier ke pergerakan kita
+        if (carrierRigidbody != null)
+        {
+            targetHorizontalVelocity += carrierRigidbody.linearVelocity.x;
+        }
+
         if (canMove)
-            rb.velocity = new Vector2(move * moveSpeed, rb.velocity.y);
+            rb.linearVelocity = new Vector2(targetHorizontalVelocity, rb.linearVelocity.y);
         else
-            rb.velocity = new Vector2(0, rb.velocity.y);
+            rb.linearVelocity = new Vector2(carrierRigidbody != null ? carrierRigidbody.linearVelocity.x : 0f, rb.linearVelocity.y);
     }
 
     // Fungsi utama dipanggil oleh musuh untuk damage & knockback
@@ -137,7 +179,7 @@ public class PlayerMovement : MonoBehaviour
         isKnockback = true;
 
         // Reset velocity lama sebelum AddForce
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
 
         // Berikan gaya pentalan instan ke belakang dan sedikit ke atas
         Vector2 force = new Vector2(directionX * knockbackForceX, knockbackForceY);
@@ -154,7 +196,7 @@ public class PlayerMovement : MonoBehaviour
         yield return new WaitForSeconds(knockbackDuration);
 
         // Reset velocity agar player tidak terus meluncur
-        rb.velocity = new Vector2(0f, rb.velocity.y);
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         isKnockback = false;
     }
 
@@ -169,7 +211,53 @@ public class PlayerMovement : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (isDead) return;
-        if (collision.gameObject.CompareTag("Player")) { isGrounded = true; return; }
+
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            isGrounded = true;
+            foreach (ContactPoint2D contact in collision.contacts)
+            {
+                if (contact.normal.y > 0.5f) // Kita berdiri di atas player lain
+                {
+                    PlayerMovement otherPM = collision.gameObject.GetComponent<PlayerMovement>();
+                    if (otherPM != null)
+                    {
+                        carrierRigidbody = otherPM.GetComponent<Rigidbody2D>();
+                        otherPM.passengerRigidbody = rb;
+                    }
+                    else
+                    {
+                        GolemBlue otherGB = collision.gameObject.GetComponent<GolemBlue>();
+                        if (otherGB != null)
+                        {
+                            carrierRigidbody = otherGB.GetComponent<Rigidbody2D>();
+                            otherGB.passengerRigidbody = rb;
+                        }
+                    }
+                    break;
+                }
+                else if (contact.normal.y < -0.5f) // Player lain berdiri di atas kita
+                {
+                    PlayerMovement otherPM = collision.gameObject.GetComponent<PlayerMovement>();
+                    if (otherPM != null)
+                    {
+                        passengerRigidbody = otherPM.GetComponent<Rigidbody2D>();
+                        otherPM.carrierRigidbody = rb;
+                    }
+                    else
+                    {
+                        GolemBlue otherGB = collision.gameObject.GetComponent<GolemBlue>();
+                        if (otherGB != null)
+                        {
+                            passengerRigidbody = otherGB.GetComponent<Rigidbody2D>();
+                            otherGB.carrierRigidbody = rb;
+                        }
+                    }
+                    break;
+                }
+            }
+            return;
+        }
 
         foreach (ContactPoint2D contact in collision.contacts)
         {
@@ -190,12 +278,108 @@ public class PlayerMovement : MonoBehaviour
     private void OnCollisionStay2D(Collision2D collision)
     {
         if (isDead) return;
+
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            isGrounded = true;
+            foreach (ContactPoint2D contact in collision.contacts)
+            {
+                if (contact.normal.y > 0.5f)
+                {
+                    PlayerMovement otherPM = collision.gameObject.GetComponent<PlayerMovement>();
+                    if (otherPM != null)
+                    {
+                        carrierRigidbody = otherPM.GetComponent<Rigidbody2D>();
+                        otherPM.passengerRigidbody = rb;
+                    }
+                    else
+                    {
+                        GolemBlue otherGB = collision.gameObject.GetComponent<GolemBlue>();
+                        if (otherGB != null)
+                        {
+                            carrierRigidbody = otherGB.GetComponent<Rigidbody2D>();
+                            otherGB.passengerRigidbody = rb;
+                        }
+                    }
+                    break;
+                }
+                else if (contact.normal.y < -0.5f)
+                {
+                    PlayerMovement otherPM = collision.gameObject.GetComponent<PlayerMovement>();
+                    if (otherPM != null)
+                    {
+                        passengerRigidbody = otherPM.GetComponent<Rigidbody2D>();
+                        otherPM.carrierRigidbody = rb;
+                    }
+                    else
+                    {
+                        GolemBlue otherGB = collision.gameObject.GetComponent<GolemBlue>();
+                        if (otherGB != null)
+                        {
+                            passengerRigidbody = otherGB.GetComponent<Rigidbody2D>();
+                            otherGB.carrierRigidbody = rb;
+                        }
+                    }
+                    break;
+                }
+            }
+            return;
+        }
+
         foreach (ContactPoint2D contact in collision.contacts) { if (contact.normal.y > 0.5f) { isGrounded = true; break; } }
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
         if (isDead) return;
+
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            PlayerMovement otherPM = collision.gameObject.GetComponent<PlayerMovement>();
+            if (otherPM != null)
+            {
+                if (carrierRigidbody == otherPM.GetComponent<Rigidbody2D>())
+                {
+                    carrierRigidbody = null;
+                }
+                if (passengerRigidbody == otherPM.GetComponent<Rigidbody2D>())
+                {
+                    passengerRigidbody = null;
+                }
+                if (otherPM.carrierRigidbody == rb)
+                {
+                    otherPM.carrierRigidbody = null;
+                }
+                if (otherPM.passengerRigidbody == rb)
+                {
+                    otherPM.passengerRigidbody = null;
+                }
+            }
+            else
+            {
+                GolemBlue otherGB = collision.gameObject.GetComponent<GolemBlue>();
+                if (otherGB != null)
+                {
+                    if (carrierRigidbody == otherGB.GetComponent<Rigidbody2D>())
+                    {
+                        carrierRigidbody = null;
+                    }
+                    if (passengerRigidbody == otherGB.GetComponent<Rigidbody2D>())
+                    {
+                        passengerRigidbody = null;
+                    }
+                    if (otherGB.carrierRigidbody == rb)
+                    {
+                        otherGB.carrierRigidbody = null;
+                    }
+                    if (otherGB.passengerRigidbody == rb)
+                    {
+                        otherGB.passengerRigidbody = null;
+                    }
+                }
+            }
+        }
+
         isGrounded = false;
         highestYPosition = transform.position.y;
     }
@@ -226,7 +410,7 @@ public class PlayerMovement : MonoBehaviour
     IEnumerator DeadRoutine()
     {
         isDead = true;
-        rb.velocity = new Vector2(0, rb.velocity.y);
+        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         if (anim != null) { anim.ResetTrigger("Hit"); anim.SetTrigger("Dead"); }
         yield return new WaitForSeconds(deadAnimationDuration);
         Time.timeScale = 0f;

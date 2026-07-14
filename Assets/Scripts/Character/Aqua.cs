@@ -40,7 +40,7 @@ public class Aqua : CharacterBase
     {
         // Aqua 2x faster in water
         float currentSpeed = isInWater ? moveSpeed * waterSpeedMultiplier : moveSpeed;
-        rb.velocity = new Vector2(moveInput * currentSpeed, rb.velocity.y);
+        rb.linearVelocity = new Vector2(moveInput * currentSpeed, rb.linearVelocity.y);
     }
 
     // === AQUA ABILITY: Extinguish Torch + Speed in Water ===

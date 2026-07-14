@@ -1,0 +1,11 @@
+{
+    "name": "Unity2300018140.Comunityaiassistant.Tests",
+    "references": [
+        "Unity2300018140.Comunityaiassistant"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

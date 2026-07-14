@@ -16,11 +16,11 @@ public class Ladder : MonoBehaviour
                 if (Mathf.Abs(verticalInput) > 0.1f)
                 {
                     rb.gravityScale = 0f;
-                    rb.velocity = new Vector2(rb.velocity.x, verticalInput * climbSpeed);
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, verticalInput * climbSpeed);
                 }
                 else
                 {
-                    rb.velocity = new Vector2(rb.velocity.x, 0f);
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
                 }
             }
         }

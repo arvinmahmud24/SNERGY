@@ -51,7 +51,7 @@ public class MushroomEnemy : MonoBehaviour
         // State 1: Masuk jangkauan serang
         if (distanceToTarget <= attackRange)
         {
-            rb.velocity = new Vector2(0f, rb.velocity.y);
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             if (anim != null) anim.SetFloat("Speed", 0f);
 
             if (Time.time >= nextAttackTime)
@@ -80,9 +80,9 @@ public class MushroomEnemy : MonoBehaviour
         float moveX = Mathf.Sign(directionX);
 
         // Gerakkan Rigidbody secara horizontal menuju target terdekat
-        rb.velocity = new Vector2(moveX * moveSpeed, rb.velocity.y);
+        rb.linearVelocity = new Vector2(moveX * moveSpeed, rb.linearVelocity.y);
 
-        if (anim != null) anim.SetFloat("Speed", Mathf.Abs(rb.velocity.x));
+        if (anim != null) anim.SetFloat("Speed", Mathf.Abs(rb.linearVelocity.x));
 
         // Flip Sprite mengikuti arah target (Scale X = 1 default menghadap kiri)
         if (moveX > 0)
@@ -93,7 +93,7 @@ public class MushroomEnemy : MonoBehaviour
 
     void StopMoving()
     {
-        rb.velocity = new Vector2(0f, rb.velocity.y);
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         if (anim != null) anim.SetFloat("Speed", 0f);
     }
 

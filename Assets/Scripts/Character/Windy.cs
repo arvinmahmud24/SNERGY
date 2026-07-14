@@ -58,7 +58,7 @@ public class Windy : CharacterBase
         if (isFlying)
         {
             // No gravity saat terbang
-            rb.velocity = new Vector2(moveInput * moveSpeed, 0);
+            rb.linearVelocity = new Vector2(moveInput * moveSpeed, 0);
         }
         else
         {
@@ -74,7 +74,7 @@ public class Windy : CharacterBase
 
         isFlying = true;
         flyTimeRemaining = flyDuration;
-        rb.velocity = new Vector2(rb.velocity.x, 0);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
         rb.gravityScale = 0; // Disable gravity while flying
     }
 
@@ -115,7 +115,7 @@ public class Windy : CharacterBase
                 Rigidbody2D objRb = col.GetComponent<Rigidbody2D>();
                 if (objRb != null)
                 {
-                    objRb.velocity = Vector2.zero;
+                    objRb.linearVelocity = Vector2.zero;
                     objRb.AddForce(Vector2.right * direction * blowForce, ForceMode2D.Impulse);
                 }
             }

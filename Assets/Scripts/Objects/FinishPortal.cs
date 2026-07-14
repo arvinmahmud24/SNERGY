@@ -114,7 +114,7 @@ public class FinishPortal : MonoBehaviour
         Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
         if (rb != null)
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             rb.bodyType = RigidbodyType2D.Static;
         }
 
@@ -134,7 +134,7 @@ public class FinishPortal : MonoBehaviour
         if (rb != null)
         {
             rb.bodyType = RigidbodyType2D.Dynamic;
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             rb.angularVelocity = 0f;
         }
 

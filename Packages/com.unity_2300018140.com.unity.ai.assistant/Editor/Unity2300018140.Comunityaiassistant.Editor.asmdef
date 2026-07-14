@@ -1,0 +1,10 @@
+{
+    "name": "Unity2300018140.Comunityaiassistant.Editor",
+    "references": [
+      "Unity2300018140.Comunityaiassistant"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}
