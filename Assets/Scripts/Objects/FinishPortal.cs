@@ -97,13 +97,13 @@ public class FinishPortal : MonoBehaviour
         if (skeletonScript != null)
         {
             // Jika Skeleton yang masuk, cari GolemBlue di map dan bebaskan jalannya
-            GolemBlue partner = Object.FindFirstObjectByType<GolemBlue>();
+            GolemBlue partner = Object.FindAnyObjectByType<GolemBlue>();
             if (partner != null) partner.ignoreDistanceCheck = true;
         }
         else if (golemScript != null)
         {
             // Jika Golem yang masuk, cari Skeleton (PlayerMovement) di map dan bebaskan jalannya
-            PlayerMovement partner = Object.FindFirstObjectByType<PlayerMovement>();
+            PlayerMovement partner = Object.FindAnyObjectByType<PlayerMovement>();
             if (partner != null) partner.ignoreDistanceCheck = true;
         }
         // =======================================================
@@ -124,7 +124,7 @@ public class FinishPortal : MonoBehaviour
 
         // Ukuran jendela popup kemenangan
         float width = 450f;
-        float height = 340f;
+        float height = 400f;
         float x = (Screen.width - width) / 2f;
         float y = (Screen.height - height) / 2f;
 
@@ -143,20 +143,32 @@ public class FinishPortal : MonoBehaviour
         subTitleStyle.fontSize = 16;
         subTitleStyle.normal.textColor = Color.white;
 
+        GUIStyle scoreStyle = new GUIStyle();
+        scoreStyle.alignment = TextAnchor.MiddleCenter;
+        scoreStyle.fontSize = 18;
+        scoreStyle.fontStyle = FontStyle.Bold;
+        scoreStyle.normal.textColor = Color.yellow;
+
         GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
         buttonStyle.fontSize = 16;
         buttonStyle.fontStyle = FontStyle.Bold;
 
         // Gambar Judul dan Pesan Kemenangan
-        GUI.Label(new Rect(x, y + 40, width, 50), "LEVEL CLEARED!", titleStyle);
-        GUI.Label(new Rect(x, y + 100, width, 30), "Kedua player berhasil mencapai portal akhir!", subTitleStyle);
+        GUI.Label(new Rect(x, y + 30, width, 50), "LEVEL CLEARED!", titleStyle);
+        GUI.Label(new Rect(x, y + 80, width, 30), "Kedua player berhasil mencapai portal akhir!", subTitleStyle);
+
+        // Menampilkan skor masing-masing karakter di layar hasil
+        string skeletonText = GameManager.Instance != null ? $"Skeleton Coins: {GameManager.Instance.skeletonScore}" : "Skeleton Coins: 0";
+        string golemText = GameManager.Instance != null ? $"Golem Coins: {GameManager.Instance.golemScore}" : "Golem Coins: 0";
+        GUI.Label(new Rect(x, y + 115, width, 25), skeletonText, scoreStyle);
+        GUI.Label(new Rect(x, y + 140, width, 25), golemText, scoreStyle);
 
         // Desain Tombol Aksi
         float btnWidth = 200f;
         float btnHeight = 45f;
         float btnX = x + (width - btnWidth) / 2f;
 
-        if (GUI.Button(new Rect(btnX, y + 140, btnWidth, btnHeight), "Next Level", buttonStyle))
+        if (GUI.Button(new Rect(btnX, y + 185, btnWidth, btnHeight), "Next Level", buttonStyle))
         {
             Time.timeScale = 1f; // Kembalikan waktu normal
             if (!string.IsNullOrEmpty(nextLevelName))
@@ -170,13 +182,13 @@ public class FinishPortal : MonoBehaviour
             }
         }
 
-        if (GUI.Button(new Rect(btnX, y + 200, btnWidth, btnHeight), "Restart Level", buttonStyle))
+        if (GUI.Button(new Rect(btnX, y + 245, btnWidth, btnHeight), "Restart Level", buttonStyle))
         {
             Time.timeScale = 1f; // Kembalikan waktu normal
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
-        if (GUI.Button(new Rect(btnX, y + 260, btnWidth, btnHeight), "Main Menu", buttonStyle))
+        if (GUI.Button(new Rect(btnX, y + 305, btnWidth, btnHeight), "Main Menu", buttonStyle))
         {
             Time.timeScale = 1f; // Kembalikan waktu normal
             SceneManager.LoadScene("MainMenu");

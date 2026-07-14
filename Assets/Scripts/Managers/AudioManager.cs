@@ -10,7 +10,7 @@ public class AudioManager : MonoBehaviour
         {
             if (_instance == null)
             {
-                _instance = FindFirstObjectByType<AudioManager>();
+                _instance = FindAnyObjectByType<AudioManager>();
 
                 if (_instance == null)
                 {
@@ -32,6 +32,7 @@ public class AudioManager : MonoBehaviour
     private AudioClip musikDead;
     private AudioClip clipJump;
     private AudioClip clipHit;
+    private AudioClip clipCoin;
 
     private void Awake()
     {
@@ -75,6 +76,7 @@ public class AudioManager : MonoBehaviour
         musikDead = Resources.Load<AudioClip>("Music/dead");
         clipJump = Resources.Load<AudioClip>("Music/jump");
         clipHit = Resources.Load<AudioClip>("Music/hit");
+        clipCoin = Resources.Load<AudioClip>("Music/coin");
     }
 
     public void PlayMainMenuMusic()
@@ -105,6 +107,11 @@ public class AudioManager : MonoBehaviour
     public void PlayHitSFX()
     {
         PlaySFX(clipHit);
+    }
+
+    public void PlayCoinSFX()
+    {
+        PlaySFX(clipCoin);
     }
 
     public void PlayGameOverSFX()

@@ -146,6 +146,7 @@ public class GolemBlue : MonoBehaviour
 
     public void TakeDamageFromEnemy(int damage, Vector2 enemyPosition)
     {
+        Debug.Log($"[GolemBlue] TakeDamageFromEnemy called. Damage: {damage}, Current Health: {health}, isDead: {isDead}");
         if (isDead) return;
 
         health -= damage;
@@ -380,11 +381,19 @@ public class GolemBlue : MonoBehaviour
 
     void OnGUI()
     {
-        GUI.Box(new Rect(Screen.width - 160, 10, 150, 30), "Golem HP: " + health);
-        if (!string.IsNullOrEmpty(damageNotice))
+        // Hanya gambar HUD jika tidak di Main Menu
+        if (SceneManager.GetActiveScene().name != "MainMenu")
         {
-            GUI.color = Color.red;
-            GUI.Label(new Rect(Screen.width - 160, 45, 150, 30), damageNotice);
+            GUI.Box(new Rect(Screen.width - 160, 10, 150, 30), "Golem HP: " + health);
+
+            int coins = GameManager.Instance != null ? GameManager.Instance.golemScore : 0;
+            GUI.Box(new Rect(Screen.width - 160, 45, 150, 30), "Golem Coins: " + coins);
+
+            if (!string.IsNullOrEmpty(damageNotice))
+            {
+                GUI.color = Color.red;
+                GUI.Label(new Rect(Screen.width - 160, 80, 150, 30), damageNotice);
+            }
         }
     }
 

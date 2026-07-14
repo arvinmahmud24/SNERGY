@@ -13,6 +13,12 @@ public class MainMenu : MonoBehaviour
 
         // Putar musik latar belakang main menu
         AudioManager.Instance.PlayMainMenuMusic();
+
+        // Reset skor koin saat masuk main menu
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetScore();
+        }
     }
 
     private void OnGUI()

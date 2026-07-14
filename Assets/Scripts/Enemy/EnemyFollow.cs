@@ -123,9 +123,12 @@ public class EnemyFollow : MonoBehaviour
 
         if (targetPlayer != null)
         {
+            Debug.Log($"[EnemyFollow] Attack target: {targetPlayer.name}");
+
             PlayerMovement pm = targetPlayer.GetComponent<PlayerMovement>();
             if (pm != null)
             {
+                Debug.Log("[EnemyFollow] Target has PlayerMovement. Attacking Skeleton...");
                 pm.TakeDamageFromEnemy(damageAmount, transform.position);
                 return;
             }
@@ -133,9 +136,12 @@ public class EnemyFollow : MonoBehaviour
             GolemBlue gb = targetPlayer.GetComponent<GolemBlue>();
             if (gb != null)
             {
+                Debug.Log("[EnemyFollow] Target has GolemBlue. Attacking Golem...");
                 gb.TakeDamageFromEnemy(damageAmount, transform.position);
                 return;
             }
+
+            Debug.LogWarning($"[EnemyFollow] Target {targetPlayer.name} has no PlayerMovement or GolemBlue component!");
         }
     }
 

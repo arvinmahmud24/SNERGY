@@ -418,11 +418,19 @@ public class PlayerMovement : MonoBehaviour
 
     void OnGUI()
     {
-        GUI.Box(new Rect(10, 10, 150, 30), "Skeleton HP: " + health);
-        if (!string.IsNullOrEmpty(damageNotice))
+        // Hanya gambar HUD jika tidak di Main Menu
+        if (SceneManager.GetActiveScene().name != "MainMenu")
         {
-            GUI.color = Color.red;
-            GUI.Label(new Rect(10, 45, 150, 30), damageNotice);
+            GUI.Box(new Rect(10, 10, 150, 30), "Skeleton HP: " + health);
+
+            int coins = GameManager.Instance != null ? GameManager.Instance.skeletonScore : 0;
+            GUI.Box(new Rect(10, 45, 150, 30), "Skeleton Coins: " + coins);
+
+            if (!string.IsNullOrEmpty(damageNotice))
+            {
+                GUI.color = Color.red;
+                GUI.Label(new Rect(10, 80, 150, 30), damageNotice);
+            }
         }
     }
 
