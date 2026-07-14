@@ -22,7 +22,8 @@ public class PlayerMovement : MonoBehaviour
     [Header("Batas Jarak Antar Player (Multiplayer)")]
     public Transform otherPlayer;
     public float maxDistance = 30f;
-    [HideInInspector] public bool ignoreDistanceCheck = false;
+    // Dihapus [HideInInspector] agar nilainya terlihat True/False di Inspector saat runtime
+    public bool ignoreDistanceCheck = false;
 
     [Header("Sistem Fall Damage")]
     public float fallDamageThreshold = 3f;
@@ -64,6 +65,9 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        // TAMBAHKAN KONDISI INI: Jika Rigidbody diset Static oleh portal, langsung hentikan fungsi Update
+        if (rb != null && rb.bodyType == RigidbodyType2D.Static) return;
+
         // Jika mati atau sedang knockback, jangan baca input pergerakan
         if (isDead || isKnockback) return;
 
@@ -121,6 +125,7 @@ public class PlayerMovement : MonoBehaviour
     {
         bool canMove = true;
 
+        // Pengecekan hanya berjalan jika ignoreDistanceCheck bernilai FALSE
         if (otherPlayer != null && !ignoreDistanceCheck)
         {
             float distance = Vector2.Distance(transform.position, otherPlayer.position);

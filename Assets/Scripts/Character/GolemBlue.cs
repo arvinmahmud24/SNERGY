@@ -9,11 +9,8 @@ public class GolemBlue : MonoBehaviour
 
     [Header("Combat & Health")]
     public int health = 100;
-    // Kekuatan pentalan ke belakang
     [SerializeField] private float knockbackForceX = 7f;
-    // Kekuatan pentalan sedikit ke atas agar pentalan terasa
     [SerializeField] private float knockbackForceY = 3f;
-    // Durasi knockback di mana kontrol Golem dimatikan sementara
     [SerializeField] private float knockbackDuration = 0.3f;
 
     [Header("Death")]
@@ -22,7 +19,8 @@ public class GolemBlue : MonoBehaviour
     [Header("Batas Jarak Antar Player (Multiplayer)")]
     public Transform otherPlayer;
     public float maxDistance = 30f;
-    [HideInInspector] public bool ignoreDistanceCheck = false;
+    /* [HideInInspector] dihapus sementara agar Anda bisa memantau status true/false */
+    public bool ignoreDistanceCheck = false;
 
     [Header("Sistem Fall Damage")]
     public float fallDamageThreshold = 3f;
@@ -38,18 +36,15 @@ public class GolemBlue : MonoBehaviour
     [HideInInspector] public Rigidbody2D passengerRigidbody = null;
 
     private bool isGrounded;
-    private bool isDead; // Menandai apakah player sudah mati
-    private bool isKnockback; // Status apakah sedang terpental
+    private bool isDead;
+    private bool isKnockback;
     private float highestYPosition;
     private string damageNotice = "";
 
     public void SetAIInputs(float moveInput, bool jumpTrigger)
     {
         aiMoveInput = moveInput;
-        if (jumpTrigger)
-        {
-            aiJumpTrigger = true;
-        }
+        if (jumpTrigger) aiJumpTrigger = true;
     }
 
     private Rigidbody2D rb;
@@ -64,7 +59,10 @@ public class GolemBlue : MonoBehaviour
 
     void Update()
     {
-        // Jika mati atau sedang terpental (knockback), kunci input kontrol jalan
+        // TAMBAHKAN KONDISI INI: Jika Rigidbody diset Static oleh portal, langsung hentikan fungsi Update
+        if (rb != null && rb.bodyType == RigidbodyType2D.Static) return;
+
+        // Jika mati atau sedang knockback, jangan baca input pergerakan
         if (isDead || isKnockback) return;
 
         float move = 0f;
@@ -74,7 +72,7 @@ public class GolemBlue : MonoBehaviour
         {
             move = aiMoveInput;
             jumpPressed = aiJumpTrigger;
-            aiJumpTrigger = false; // Consume jump trigger
+            aiJumpTrigger = false;
         }
         else
         {
@@ -100,10 +98,7 @@ public class GolemBlue : MonoBehaviour
             }
         }
 
-        if (anim != null)
-        {
-            anim.SetFloat("Speed", Mathf.Abs(move));
-        }
+        if (anim != null) anim.SetFloat("Speed", Mathf.Abs(move));
 
         if (move > 0.1f)
             transform.localScale = new Vector3(1, 1, 1);
@@ -115,6 +110,7 @@ public class GolemBlue : MonoBehaviour
     {
         bool canMove = true;
 
+        // Mengecek jarak hanya jika ignoreDistanceCheck bernilai FALSE
         if (otherPlayer != null && !ignoreDistanceCheck)
         {
             float distance = Vector2.Distance(transform.position, otherPlayer.position);
@@ -126,11 +122,9 @@ public class GolemBlue : MonoBehaviour
             }
         }
 
-        // Hitung kecepatan dasar, kurangi jika membawa penumpang
         float currentSpeed = passengerRigidbody != null ? moveSpeed * carryingSpeedMultiplier : moveSpeed;
         float targetHorizontalVelocity = move * currentSpeed;
 
-        // Jika kita sedang digendong, tambahkan kecepatan carrier ke pergerakan kita
         if (carrierRigidbody != null)
         {
             targetHorizontalVelocity += carrierRigidbody.linearVelocity.x;
@@ -142,10 +136,8 @@ public class GolemBlue : MonoBehaviour
             rb.linearVelocity = new Vector2(carrierRigidbody != null ? carrierRigidbody.linearVelocity.x : 0f, rb.linearVelocity.y);
     }
 
-    // Fungsi utama dipanggil oleh musuh saat Golem terkena serangan
     public void TakeDamageFromEnemy(int damage, Vector2 enemyPosition)
     {
-        // PERBAIKAN 1: Jika sudah mati, abaikan semua damage dan hit trigger selanjutnya
         if (isDead) return;
 
         health -= damage;
@@ -153,9 +145,7 @@ public class GolemBlue : MonoBehaviour
         CancelInvoke("ClearNotice");
         Invoke("ClearNotice", 1.5f);
 
-        // Hitung arah pentalan (menjauh dari posisi musuh)
-        float knockbackDirX = transform.position.x - enemyPosition.x;
-        knockbackDirX = Mathf.Sign(knockbackDirX); // Menghasilkan 1 (Kanan) atau -1 (Kiri)
+        float knockbackDirX = Mathf.Sign(transform.position.x - enemyPosition.x);
 
         if (health <= 0)
         {
@@ -164,35 +154,24 @@ public class GolemBlue : MonoBehaviour
         }
         else
         {
-            // Pentalan hanya terjadi jika belum mati
-            if (!isKnockback)
-            {
-                StartCoroutine(KnockbackRoutine(knockbackDirX));
-            }
+            if (!isKnockback) StartCoroutine(KnockbackRoutine(knockbackDirX));
         }
     }
 
     private IEnumerator KnockbackRoutine(float directionX)
     {
         isKnockback = true;
-
-        // Reset sisa kecepatan lama sebelum melempar rigidBody
         rb.linearVelocity = Vector2.zero;
-
-        // Berikan dorongan pentalan instan ke belakang-atas
         Vector2 force = new Vector2(directionX * knockbackForceX, knockbackForceY);
         rb.AddForce(force, ForceMode2D.Impulse);
 
-        // Jalankan animasi terluka Golem
         if (anim != null)
         {
             anim.ResetTrigger("Dead");
             anim.SetTrigger("Hit");
         }
 
-        // Tunggu durasi knockback hingga kontrol dikembalikan ke player
         yield return new WaitForSeconds(knockbackDuration);
-
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         isKnockback = false;
     }
@@ -213,7 +192,7 @@ public class GolemBlue : MonoBehaviour
             isGrounded = true;
             foreach (ContactPoint2D contact in collision.contacts)
             {
-                if (contact.normal.y > 0.5f) // Kita berdiri di atas player lain
+                if (contact.normal.y > 0.5f)
                 {
                     PlayerMovement otherPM = collision.gameObject.GetComponent<PlayerMovement>();
                     if (otherPM != null)
@@ -232,7 +211,7 @@ public class GolemBlue : MonoBehaviour
                     }
                     break;
                 }
-                else if (contact.normal.y < -0.5f) // Player lain berdiri di atas kita
+                else if (contact.normal.y < -0.5f)
                 {
                     PlayerMovement otherPM = collision.gameObject.GetComponent<PlayerMovement>();
                     if (otherPM != null)
@@ -262,10 +241,7 @@ public class GolemBlue : MonoBehaviour
                 if (!isGrounded)
                 {
                     float fallDistance = highestYPosition - transform.position.y;
-                    if (fallDistance > fallDamageThreshold)
-                    {
-                        TakeFallDamage();
-                    }
+                    if (fallDistance > fallDamageThreshold) TakeFallDamage();
                 }
                 isGrounded = true;
                 highestYPosition = transform.position.y;
@@ -344,44 +320,20 @@ public class GolemBlue : MonoBehaviour
             PlayerMovement otherPM = collision.gameObject.GetComponent<PlayerMovement>();
             if (otherPM != null)
             {
-                if (carrierRigidbody == otherPM.GetComponent<Rigidbody2D>())
-                {
-                    carrierRigidbody = null;
-                }
-                if (passengerRigidbody == otherPM.GetComponent<Rigidbody2D>())
-                {
-                    passengerRigidbody = null;
-                }
-                if (otherPM.carrierRigidbody == rb)
-                {
-                    otherPM.carrierRigidbody = null;
-                }
-                if (otherPM.passengerRigidbody == rb)
-                {
-                    otherPM.passengerRigidbody = null;
-                }
+                if (carrierRigidbody == otherPM.GetComponent<Rigidbody2D>()) carrierRigidbody = null;
+                if (passengerRigidbody == otherPM.GetComponent<Rigidbody2D>()) passengerRigidbody = null;
+                if (otherPM.carrierRigidbody == rb) otherPM.carrierRigidbody = null;
+                if (otherPM.passengerRigidbody == rb) otherPM.passengerRigidbody = null;
             }
             else
             {
                 GolemBlue otherGB = collision.gameObject.GetComponent<GolemBlue>();
                 if (otherGB != null)
                 {
-                    if (carrierRigidbody == otherGB.GetComponent<Rigidbody2D>())
-                    {
-                        carrierRigidbody = null;
-                    }
-                    if (passengerRigidbody == otherGB.GetComponent<Rigidbody2D>())
-                    {
-                        passengerRigidbody = null;
-                    }
-                    if (otherGB.carrierRigidbody == rb)
-                    {
-                        otherGB.carrierRigidbody = null;
-                    }
-                    if (otherGB.passengerRigidbody == rb)
-                    {
-                        otherGB.passengerRigidbody = null;
-                    }
+                    if (carrierRigidbody == otherGB.GetComponent<Rigidbody2D>()) carrierRigidbody = null;
+                    if (passengerRigidbody == otherGB.GetComponent<Rigidbody2D>()) passengerRigidbody = null;
+                    if (otherGB.carrierRigidbody == rb) otherGB.carrierRigidbody = null;
+                    if (otherGB.passengerRigidbody == rb) otherGB.passengerRigidbody = null;
                 }
             }
         }
@@ -422,49 +374,33 @@ public class GolemBlue : MonoBehaviour
         }
     }
 
-    // PERBAIKAN UTAMA: Penanganan kematian Golem yang rapi
     IEnumerator DeadRoutine()
     {
         isDead = true;
-
-        // 1. Matikan script input agar pemain tidak bisa bergerak
         this.enabled = false;
 
-        // 2. Mainkan Animasi Mati
         if (anim != null)
         {
             anim.ResetTrigger("Hit");
             anim.SetTrigger("Dead");
         }
 
-        // 3. Matikan gesekan/pergerakan horizontal tapi pertahankan gravitasi agar tidak melayang/tembus
         if (rb != null)
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
-            // Kunci rotasi dan pergerakan X agar jasadnya tetap stabil
             rb.constraints = RigidbodyConstraints2D.FreezeRotation | RigidbodyConstraints2D.FreezePositionX;
         }
 
-        // 4. Ubah Collider agar jasad tidak melayang ataupun amblas menembus tanah
         BoxCollider2D col = GetComponent<BoxCollider2D>();
         if (col != null)
         {
-            // Memendekkan tinggi collider agar pas dengan sprite jasad Golem yang ceper
             col.size = new Vector2(col.size.x, 0.25f);
-            // Menggeser posisi collider ke bagian bawah tubuh agar menapak di tanah
             col.offset = new Vector2(col.offset.x, -0.35f);
         }
 
-        // 5. Tunggu hingga durasi animasi mati selesai
         yield return new WaitForSeconds(deadAnimationDuration);
 
-        // (Opsional) Hentikan sistem fisika sepenuhnya setelah animasi selesai agar performa lancar
-        if (rb != null)
-        {
-            rb.bodyType = RigidbodyType2D.Static;
-        }
-
-        // Hentikan waktu game (sesuai gameplay asli Anda)
+        if (rb != null) rb.bodyType = RigidbodyType2D.Static;
         Time.timeScale = 0f;
     }
 }

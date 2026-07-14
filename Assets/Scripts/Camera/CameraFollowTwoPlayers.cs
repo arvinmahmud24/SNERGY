@@ -28,9 +28,31 @@ public class CameraFollowTwoPlayers : MonoBehaviour
         if (player1 == null || player2 == null)
             return;
 
-        LimitPlayersDistance();
-        Move();
-        Zoom();
+        Rigidbody2D rb1 = player1.GetComponent<Rigidbody2D>();
+        Rigidbody2D rb2 = player2.GetComponent<Rigidbody2D>();
+
+        bool p1Static = rb1 != null && rb1.bodyType == RigidbodyType2D.Static;
+        bool p2Static = rb2 != null && rb2.bodyType == RigidbodyType2D.Static;
+
+        if (!p1Static && !p2Static)
+        {
+            // Kedua player aktif, jalankan pembatasan jarak dan ikuti titik tengah
+            LimitPlayersDistance();
+            Move();
+            Zoom();
+        }
+        else if (p1Static && !p2Static)
+        {
+            // Player 1 sudah di portal, ikuti Player 2 saja
+            MoveToTarget(player2.position);
+            ResetZoom();
+        }
+        else if (!p1Static && p2Static)
+        {
+            // Player 2 sudah di portal, ikuti Player 1 saja
+            MoveToTarget(player1.position);
+            ResetZoom();
+        }
     }
 
     void Move()
@@ -41,6 +63,12 @@ public class CameraFollowTwoPlayers : MonoBehaviour
         transform.position = Vector3.Lerp(transform.position, newPosition, smoothSpeed * Time.deltaTime);
     }
 
+    void MoveToTarget(Vector3 targetPosition)
+    {
+        Vector3 newPosition = new Vector3(targetPosition.x, targetPosition.y, transform.position.z);
+        transform.position = Vector3.Lerp(transform.position, newPosition, smoothSpeed * Time.deltaTime);
+    }
+
     void Zoom()
     {
         float distance = Vector2.Distance(player1.position, player2.position);
@@ -48,6 +76,11 @@ public class CameraFollowTwoPlayers : MonoBehaviour
 
         newZoom = Mathf.Clamp(newZoom, minZoom, maxZoom);
         cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, newZoom, smoothSpeed * Time.deltaTime);
+    }
+
+    void ResetZoom()
+    {
+        cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, minZoom, smoothSpeed * Time.deltaTime);
     }
 
     void LimitPlayersDistance()
