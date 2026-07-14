@@ -78,8 +78,14 @@ public class GolemBlue : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.D)) move = 1f;
             else if (Input.GetKey(KeyCode.A)) move = -1f;
+            else
+            {
+                move = Input.GetAxis("Horizontal_P2");
+            }
 
-            jumpPressed = Input.GetKeyDown(KeyCode.W);
+            jumpPressed = Input.GetKeyDown(KeyCode.Joystick2Button0) || 
+                          Input.GetKeyDown(KeyCode.Joystick2Button1) || 
+                          Input.GetKeyDown(KeyCode.W);
         }
 
         MovePlayer(move);
@@ -373,6 +379,7 @@ public class GolemBlue : MonoBehaviour
             GUI.Label(new Rect(Screen.width - 160, 45, 150, 30), damageNotice);
         }
     }
+
 
     IEnumerator DeadRoutine()
     {

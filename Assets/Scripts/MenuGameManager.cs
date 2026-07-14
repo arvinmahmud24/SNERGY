@@ -3,6 +3,9 @@ using UnityEngine.SceneManagement;
 
 public class MenuGameManager : MonoBehaviour
 {
+    [Header("Background Settings")]
+    public Texture2D backgroundTexture;
+
     private bool isGameStarted = false;
     private bool isPaused = false;
 
@@ -66,7 +69,7 @@ public class MenuGameManager : MonoBehaviour
         // 1. TAMPILAN AWAL / MAIN MENU (Jika game belum dimulai)
         if (!isGameStarted)
         {
-            DrawMenuOverlay("SYNERGY", "A Co-op Elemental Adventure", "Play Game", "Exit Game", true);
+            DrawMenuOverlay("SYNERGY", "A Co-op Elemental Adventure", "Play Game", "Exit", true);
         }
         // 2. PAUSE MENU (Jika game sedang di-pause)
         else if (isPaused)
@@ -77,18 +80,26 @@ public class MenuGameManager : MonoBehaviour
 
     private void DrawMenuOverlay(string title, string subtitle, string btn1Text, string btn2Text, bool isMainMenu)
     {
-        // Gambar latar belakang hitam transparan menutupi seluruh layar
-        Texture2D blackTexture = new Texture2D(1, 1);
-        blackTexture.SetPixel(0, 0, new Color(0, 0, 0, 0.75f));
-        blackTexture.Apply();
-        
-        GUIStyle bgStyle = new GUIStyle();
-        bgStyle.normal.background = blackTexture;
-        GUI.Box(new Rect(0, 0, Screen.width, Screen.height), GUIContent.none, bgStyle);
+        // Gambar latar belakang (Gunakan texture jika dipasang di Inspector dan ini adalah Main Menu)
+        if (isMainMenu && backgroundTexture != null)
+        {
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), backgroundTexture, ScaleMode.ScaleAndCrop);
+        }
+        else
+        {
+            // Gambar latar belakang hitam transparan menutupi seluruh layar
+            Texture2D blackTexture = new Texture2D(1, 1);
+            blackTexture.SetPixel(0, 0, new Color(0, 0, 0, 0.75f));
+            blackTexture.Apply();
+            
+            GUIStyle bgStyle = new GUIStyle();
+            bgStyle.normal.background = blackTexture;
+            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), GUIContent.none, bgStyle);
+        }
 
         // Ukuran jendela popup menu
         float width = 450f;
-        float height = isMainMenu ? 280f : 340f; // Pause menu punya 3 tombol
+        float height = isMainMenu ? 280f : 340f; // Main menu memiliki 2 tombol (280px), Pause menu memiliki 3 tombol (340px)
         float x = (Screen.width - width) / 2f;
         float y = (Screen.height - height) / 2f;
 
@@ -128,7 +139,7 @@ public class MenuGameManager : MonoBehaviour
                 PlayGame();
             }
 
-            // Tombol 2: Exit Game
+            // Tombol 2: Exit
             if (GUI.Button(new Rect(btnX, y + 210, btnWidth, btnHeight), btn2Text, buttonStyle))
             {
                 ExitGame();
@@ -149,8 +160,8 @@ public class MenuGameManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             }
 
-            // Tombol 3: Exit Game
-            if (GUI.Button(new Rect(btnX, y + 260, btnWidth, btnHeight), "Exit Game", buttonStyle))
+            // Tombol 3: Exit
+            if (GUI.Button(new Rect(btnX, y + 260, btnWidth, btnHeight), "Exit", buttonStyle))
             {
                 ExitGame();
             }

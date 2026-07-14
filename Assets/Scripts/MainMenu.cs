@@ -3,6 +3,9 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    [Header("Background Settings")]
+    public Texture2D backgroundTexture;
+
     private void Start()
     {
         // Pastikan waktu game berjalan normal saat berada di main menu
@@ -11,14 +14,22 @@ public class MainMenu : MonoBehaviour
 
     private void OnGUI()
     {
-        // 1. Gambar latar belakang hitam transparan menutupi seluruh layar
-        Texture2D blackTexture = new Texture2D(1, 1);
-        blackTexture.SetPixel(0, 0, new Color(0, 0, 0, 0.7f));
-        blackTexture.Apply();
-        
-        GUIStyle bgStyle = new GUIStyle();
-        bgStyle.normal.background = blackTexture;
-        GUI.Box(new Rect(0, 0, Screen.width, Screen.height), GUIContent.none, bgStyle);
+        // 1. Gambar latar belakang (Gunakan texture jika dipasang di Inspector)
+        if (backgroundTexture != null)
+        {
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), backgroundTexture, ScaleMode.ScaleAndCrop);
+        }
+        else
+        {
+            // Fallback ke warna gelap transparan jika texture kosong
+            Texture2D blackTexture = new Texture2D(1, 1);
+            blackTexture.SetPixel(0, 0, new Color(0, 0, 0, 0.7f));
+            blackTexture.Apply();
+            
+            GUIStyle bgStyle = new GUIStyle();
+            bgStyle.normal.background = blackTexture;
+            GUI.Box(new Rect(0, 0, Screen.width, Screen.height), GUIContent.none, bgStyle);
+        }
 
         // 2. Ukuran jendela menu utama (disesuaikan dengan gaya panel kemenangan)
         float width = 450f;
@@ -62,7 +73,7 @@ public class MainMenu : MonoBehaviour
         }
 
         // Tombol EXIT GAME
-        if (GUI.Button(new Rect(btnX, y + 210, btnWidth, btnHeight), "Exit Game", buttonStyle))
+        if (GUI.Button(new Rect(btnX, y + 210, btnWidth, btnHeight), "Exit", buttonStyle))
         {
             Debug.Log("Keluar dari game...");
             Application.Quit();

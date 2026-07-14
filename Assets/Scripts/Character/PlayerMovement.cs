@@ -85,9 +85,15 @@ public class PlayerMovement : MonoBehaviour
             // Baca Input Keyboard/Joystick
             if (Input.GetKey(KeyCode.RightArrow)) move = 1f;
             else if (Input.GetKey(KeyCode.LeftArrow)) move = -1f;
-            else move = Input.GetAxis("Horizontal"); // Gunakan Axis untuk Joystick
+            else
+            {
+                move = Input.GetAxis("Horizontal_P1");
+            }
 
-            jumpPressed = Input.GetKeyDown(KeyCode.JoystickButton1) || Input.GetKeyDown(KeyCode.UpArrow);
+            jumpPressed = Input.GetKeyDown(KeyCode.Joystick1Button0) || 
+                          Input.GetKeyDown(KeyCode.Joystick1Button1) || 
+                          Input.GetKeyDown(KeyCode.UpArrow) ||
+                          Input.GetKeyDown(KeyCode.Space);
         }
 
         MovePlayer(move);
@@ -411,6 +417,7 @@ public class PlayerMovement : MonoBehaviour
             GUI.Label(new Rect(10, 45, 150, 30), damageNotice);
         }
     }
+
 
     IEnumerator DeadRoutine()
     {
