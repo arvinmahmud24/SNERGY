@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -103,6 +104,7 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             isGrounded = false;
+            AudioManager.Instance.PlayJumpSFX();
         }
 
         // Simpan titik tertinggi untuk fall damage
@@ -168,6 +170,12 @@ public class PlayerMovement : MonoBehaviour
         damageNotice = $"-{damage} HP (Knockback!)";
         CancelInvoke("ClearNotice");
         Invoke("ClearNotice", 1.5f);
+
+        // Nyalakan trigger animasi Hit
+        if (anim != null) anim.SetTrigger("Hit");
+
+        // Bunyikan suara hit
+        AudioManager.Instance.PlayHitSFX();
 
         // Hitung arah knockback (selalu menjauh dari posisi musuh)
         float knockbackDirX = transform.position.x - enemyPosition.x;
@@ -424,7 +432,9 @@ public class PlayerMovement : MonoBehaviour
         isDead = true;
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         if (anim != null) { anim.ResetTrigger("Hit"); anim.SetTrigger("Dead"); }
+        AudioManager.Instance.PlayGameOverSFX();
         yield return new WaitForSeconds(deadAnimationDuration);
-        Time.timeScale = 0f;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
     }
 }

@@ -15,6 +15,9 @@ public class MenuGameManager : MonoBehaviour
         Time.timeScale = 0f;
         isGameStarted = false;
         isPaused = false;
+
+        // Putar musik main menu saat overlay main menu aktif
+        AudioManager.Instance.PlayMainMenuMusic();
     }
 
     void Update()

@@ -61,6 +61,9 @@ public class FinishPortal : MonoBehaviour
         // Tandai bahwa level telah selesai dan hentikan waktu permainan
         isLevelCleared = true;
         Time.timeScale = 0f;
+
+        // Mainkan musik kemenangan
+        AudioManager.Instance.PlayWinMusic();
     }
 
     private void SembunyikanPlayer(GameObject player)

@@ -10,6 +10,9 @@ public class MainMenu : MonoBehaviour
     {
         // Pastikan waktu game berjalan normal saat berada di main menu
         Time.timeScale = 1f;
+
+        // Putar musik latar belakang main menu
+        AudioManager.Instance.PlayMainMenuMusic();
     }
 
     private void OnGUI()
@@ -68,8 +71,8 @@ public class MainMenu : MonoBehaviour
         // Tombol PLAY GAME
         if (GUI.Button(new Rect(btnX, y + 150, btnWidth, btnHeight), "Play Game", buttonStyle))
         {
-            // Memuat level pertama (Tutorial)
-            SceneManager.LoadScene("World_1_Tutorial");
+            // Memuat level pertama (SampleScene)
+            SceneManager.LoadScene("SampleScene");
         }
 
         // Tombol EXIT GAME

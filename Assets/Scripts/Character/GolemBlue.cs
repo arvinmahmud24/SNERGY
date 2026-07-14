@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class GolemBlue : MonoBehaviour
 {
@@ -94,6 +95,7 @@ public class GolemBlue : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             isGrounded = false;
+            AudioManager.Instance.PlayJumpSFX();
         }
 
         if (!isGrounded)
@@ -150,6 +152,12 @@ public class GolemBlue : MonoBehaviour
         damageNotice = $"-{damage} HP (Knockback!)";
         CancelInvoke("ClearNotice");
         Invoke("ClearNotice", 1.5f);
+
+        // Nyalakan trigger animasi Hit
+        if (anim != null) anim.SetTrigger("Hit");
+
+        // Bunyikan suara hit
+        AudioManager.Instance.PlayHitSFX();
 
         float knockbackDirX = Mathf.Sign(transform.position.x - enemyPosition.x);
 
@@ -392,6 +400,9 @@ public class GolemBlue : MonoBehaviour
             anim.SetTrigger("Dead");
         }
 
+        // Putar suara mati/game over
+        AudioManager.Instance.PlayGameOverSFX();
+
         if (rb != null)
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
@@ -408,6 +419,7 @@ public class GolemBlue : MonoBehaviour
         yield return new WaitForSeconds(deadAnimationDuration);
 
         if (rb != null) rb.bodyType = RigidbodyType2D.Static;
-        Time.timeScale = 0f;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
     }
 }
